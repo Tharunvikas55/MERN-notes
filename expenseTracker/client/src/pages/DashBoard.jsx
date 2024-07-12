@@ -54,47 +54,29 @@
 
 
 
-
-import React,{useEffect, useState} from 'react'
-import axios from 'axios'
-import { useNavigate } from 'react-router-dom'
-import NavBar from '../components/NavBar'
-import { ToastContainer , toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
-//import SideBar from '../components/SideBar';
+import React, { useEffect, useState } from 'react';
+import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import NavBar from '../components/NavBar';
 import Expense from './Expense';
 import ExpenseForm from './ExpenseForm';
 
 const DashBoard = () => {
-  const [message,setMessage]=useState("")
-  const [userName, setUserName] = useState("")
-  const [userId,setUserId]=useState();
-  const navigate=useNavigate()
-  axios.defaults.withCredentials=true;
-  // useEffect(()=>{
-  //   axios.get('http://localhost:3001/dashboard')
-  //   .then((res)=>{console.log(res)
-  //     if(res.data.valid)
-  //       {setMessage(res.data.message);
-  //         setUserName(res.data.user.name);
-  //       }
-
-  //     else
-  //     navigate('/login')
-  //   })
-  //   .catch(err=>console.log(err))
-  // })
+  const [message, setMessage] = useState('');
+  const [userName, setUserName] = useState('');
+  const [userId, setUserId] = useState();
+  const [expenses, setExpenses] = useState([]);
+  const navigate = useNavigate();
+  axios.defaults.withCredentials = true;
 
   useEffect(() => {
     const fetchData = async () => {
       try {
         const res = await axios.get('http://localhost:3001/dashboard');
         if (res.data.valid) {
-           //toast.success(`Welcome ${res.data.user.name}!`);
           setMessage(res.data.message);
           setUserName(res.data.user.name);
-          console.log(res.data.user.id);
-          setUserId(res.data.user.id)
+          setUserId(res.data.user.id);
         } else {
           navigate('/');
         }
@@ -107,31 +89,46 @@ const DashBoard = () => {
     fetchData();
   }, [navigate]);
 
+  useEffect(() => {
+    const fetchExpenses = async () => {
+      try {
+        const res = await axios.get(`http://localhost:3001/${userId}/get-expenses`);
+        setExpenses(res.data.expenses);
+      } catch (err) {
+        console.log(err);
+        navigate('/dashboard');
+      }
+    };
 
+    if (userId) {
+      fetchExpenses();
+    }
+  }, [userId, navigate]);
 
+  
+
+  const addExpense = async (newExpense) => {
+    try {
+      const res = await axios.post(`http://localhost:3001/${userId}/add-expense`, newExpense);
+      if (res.data.success) {
+        setExpenses([...expenses, res.data.expense]);
+      } else {
+        console.error('Failed to add expense');
+      }
+    } catch (error) {
+      console.error('Error adding expense:', error);
+    }
+  };
 
   return (
-    // <div className='m-2'>
-    //   <div className='container-fluid'>
-    //   <NavBar userName={userName}/>
-    //     <div className='row'>
-    //       <div className="col">
-    //         <div className='mt-5'><ExpenseForm/>
-    //         </div>
-    //         <div className='mx-5 my-5'><Expense/>
-    //         </div>
-    //       </div>
-    //     </div>
-    //   </div>     
-    // </div>
     <div className="container-fluid">
-      <NavBar userName={userName}/>
+      <NavBar userName={userName} />
       <div className="row">
-      <div className="col"><ExpenseForm userId={userId}/></div>
-      <div className="col"><Expense  userId={userId}/></div>
+        <div className="col"><ExpenseForm userId={userId} addExpense={addExpense} /></div>
+        <div className="col"><Expense expenses={expenses} userId={userId} /></div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default DashBoard
+export default DashBoard;

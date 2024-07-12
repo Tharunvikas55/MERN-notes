@@ -142,35 +142,24 @@
 // };
 
 // export default Expense;
+
+
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { FaRegEdit } from "react-icons/fa";
 import { MdDelete } from "react-icons/md";
-import { FcAcceptDatabase } from "react-icons/fc";
-import { FcCancel } from "react-icons/fc";
+import { FcAcceptDatabase, FcCancel } from "react-icons/fc";
 
-const Expense = ({ userId }) => {
-  const [expenses, setExpenses] = useState([]);
-  const [editIndex, setEditIndex] = useState(null);
-  const [editData, setEditData] = useState({ title: '', description: '', amount: '', date: '' });
+const Expense = ({ userId, expenses, setExpenses }) => {
   const [totalExpense, setTotalExpense] = useState(0);
+  const [editIndex, setEditIndex] = useState(null);
+  const [editData, setEditData] = useState({ title: '', description: '', amount: '' });
   const navigate = useNavigate();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.get(`http://localhost:3001/${userId}/get-expenses`);
-        setExpenses(res.data.expenses);
-        calculateTotalExpense(res.data.expenses); // Calculate total expense when expenses are fetched
-      } catch (err) {
-        console.log(err);
-        navigate('/dashboard'); // Redirect to dashboard or handle error
-      }
-    };
-
-    fetchData();
-  }, [userId, navigate]);
+    calculateTotalExpense(expenses); // Calculate total expense when expenses are updated
+  }, [expenses]);
 
   // Function to calculate total expense
   const calculateTotalExpense = (expenses) => {
@@ -180,7 +169,11 @@ const Expense = ({ userId }) => {
 
   const handleEditClick = (index) => {
     setEditIndex(index);
-    setEditData(expenses[index]);
+    setEditData({
+      title: expenses[index].title,
+      description: expenses[index].description,
+      amount: expenses[index].amount
+    });
   };
 
   const handleEditChange = (e) => {
@@ -195,10 +188,10 @@ const Expense = ({ userId }) => {
       await axios.put(`http://localhost:3001/${userId}/edit-expense/${expenseId}`, editData);
       const updatedExpenses = [...expenses];
       updatedExpenses[editIndex] = { ...editData, _id: expenseId }; // Update local state
+      // Update the state with the updated expenses
       setExpenses(updatedExpenses);
-      calculateTotalExpense(updatedExpenses); // Update total expense after edit
       setEditIndex(null);
-      setEditData({ title: '', description: '', amount: '', date: '' });
+      setEditData({ title: '', description: '', amount: '' });
     } catch (err) {
       console.log(err);
       // Handle error as needed
@@ -207,7 +200,20 @@ const Expense = ({ userId }) => {
 
   const handleCancelEdit = () => {
     setEditIndex(null);
-    setEditData({ title: '', description: '', amount: '', date: '' });
+    setEditData({ title: '', description: '', amount: '' });
+  };
+
+  const handleDelete = async (index) => {
+    const expenseId = expenses[index]._id; // Get the ID of the expense to delete
+    try {
+      await axios.delete(`http://localhost:3001/${userId}/delete-expense/${expenseId}`);
+      // Update the state by filtering out the deleted expense
+      const updatedExpenses = expenses.filter((_, i) => i !== index);
+      setExpenses(updatedExpenses);
+    } catch (err) {
+      console.log(err);
+      // Handle error as needed
+    }
   };
 
   return (
@@ -260,17 +266,7 @@ const Expense = ({ userId }) => {
               ) : (
                 expense.amount
               )}</td>
-              <td>{editIndex === index ? (
-                <input
-                  type="date"
-                  name="date"
-                  className='form-control'
-                  value={editData.date}
-                  onChange={handleEditChange}
-                />
-              ) : (
-                new Date(expense.date).toLocaleDateString()
-              )}</td>
+              <td>{new Date(expense.date).toLocaleDateString()}</td>
               <td>
                 {editIndex === index ? (
                   <>
@@ -279,8 +275,8 @@ const Expense = ({ userId }) => {
                   </>
                 ) : (
                   <>
-                    <FaRegEdit onClick={() => handleEditClick(index)} />
-                    <MdDelete />
+                    <button onClick={() => handleEditClick(index)} className='btn' ><FaRegEdit /></button>
+                    <button className='btn btn-danger' onClick={() => handleDelete(index)}><MdDelete /></button>
                   </>
                 )}
               </td>
