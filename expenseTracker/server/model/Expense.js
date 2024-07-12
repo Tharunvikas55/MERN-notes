@@ -20,7 +20,7 @@ const ExpenseSchema=new mongoose.Schema({
         },
         date:{
           type:Date,
-          required:true,
+          default: Date.now ,
         }
       }],
       totalexpense:{
@@ -28,11 +28,11 @@ const ExpenseSchema=new mongoose.Schema({
           required: true,
           default:0,
       },
-      created_at: {
-        type: Date,
-        default: Date.now
-      }
-})
+      // created_at: {
+      //   type: Date,
+      //   default: Date.now
+      // }
+},{timestamps:true})
 
 const ExpenseModel=mongoose.model('Expense',ExpenseSchema);
 
