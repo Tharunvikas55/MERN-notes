@@ -1,0 +1,230 @@
+
+const express=require('express')
+const cors=require('cors')
+const mongoose=require('mongoose')
+const bcrypt=require('bcrypt')
+const jwt=require('jsonwebtoken')
+const cookieParser=require('cookie-parser')
+const UserModel = require('./model/User')
+const ExpenseModel=require('./model/Expense')
+
+const app=express()
+app.use(express.json())
+app.use(cors({
+    origin:["http://localhost:5173"],
+    methods:["GET",'POST','PUT','DELETE'],
+    credentials:true
+}))
+app.use(cookieParser())
+
+mongoose.connect("mongodb://localhost:27017/accessrefreshtoken")
+    .then(result=>console.log("Connected to mongodb"))
+    .catch(err=>console.log(err))
+
+//middleware to verify the user is authorized or not
+const verifyUser=async (req,res,next)=>{
+    const accesstoken=req.cookies.accessToken;
+    //console.log(token);
+    if(!accesstoken){
+        const tokenRefreshed = await renewToken(req, res);
+        if (tokenRefreshed) {
+            return next();
+        } else {
+            return res.json({ valid: false, message: "Invalid Token" });
+        }
+    }
+    else{
+        jwt.verify(accesstoken,"jwt-access-token-secret-key",(err,decoded)=>{
+            if(err) {const tokenRefreshed =  renewToken(req, res);
+                if (tokenRefreshed) {
+                    return next();
+                } else {
+                    return res.json({ valid: false, message: "Invalid Token" });
+                }}
+            else{
+                req.email=decoded.email;
+                //req.user = user;
+                return next();
+            }
+        });
+    }
+};
+
+const renewToken=(req,res)=>{
+    const Refreshtoken=req.cookies.RefreshToken;
+    let exist=false;
+    if(!Refreshtoken){
+        res.clearCookie('accessToken');
+        return false;
+    }else{
+        return jwt.verify(Refreshtoken,"jwt-refresh-token-secret-key",(err,decoded)=>{
+            if(err) {
+                res.clearCookie('accessToken');
+                return false;
+            }
+            else{
+                const newAccessToken=jwt.sign({email:decoded.email},"jwt-access-token-secret-key",{expiresIn:'5m'})
+                res.cookie("accessToken",newAccessToken,{maxAge:300000})
+                return true;
+            }
+        });
+    }
+};
+
+
+app.get('/dashboard',verifyUser,(req,res)=>{
+    // return res.json({valid:true,message:"authorized"})
+    UserModel.findOne({ email: req.email })
+    .then(user => {
+        if (user) {
+            return res.json({ valid: true, message: "Authorized", user: { name: user.name, email: user.email ,id:user._id} });
+        } else {
+            return res.json({ valid: false, message: "User not found" });
+        }
+    })
+    .catch(err => {
+        console.log("Error fetching user:", err);
+        res.status(500).json({ valid: false, message: "Internal Server Error" });
+    });
+})
+
+app.post('/login',(req,res)=>{  
+    const {email,password}=req.body;
+    UserModel.findOne({email:email})
+    .then(user=>{
+        if(user){
+            bcrypt.compare(password,user.password,(err,response)=>{
+                if(response){
+                    const accessToken=jwt.sign({email:email},"jwt-access-token-secret-key",{expiresIn:'5m'})
+                    const RefreshToken=jwt.sign({email:email},"jwt-refresh-token-secret-key",{expiresIn:'30m'})
+
+                    const userId = user._id; 
+
+                    res.cookie("accessToken",accessToken,{ maxAge: 300000, httpOnly: true, secure: true, sameSite: 'strict' })
+                    res.cookie("RefreshToken",RefreshToken,{ maxAge: 1800000, httpOnly: true, secure: true, sameSite: 'strict' })
+                    return res.json({Login:true, user: {id:userId, name: user.name, email: user.email}})
+                }
+                else{
+                    res.json({Login:false,message:"Password Incorrect"})
+                }
+            })
+            
+        }
+        else{
+            res.json({Login:false,message:"user account not found"})
+        }
+    })
+});
+
+app.post('/logout', (req, res) => {
+    res.clearCookie('accessToken');
+    res.clearCookie('refreshToken');
+    return res.json({ success: true, message: "Logged out successfully" });
+});
+
+app.get('/:userId/get-expenses', async (req, res) => {
+    const userId = req.params.userId; // Corrected: Access userId directly
+
+    try {
+      const expenseDoc = await ExpenseModel.findOne({ userId });
+
+      if (expenseDoc) {
+        res.status(200).json({ expenses: expenseDoc.expenses });
+      } else {
+        res.status(404).json({ message: 'No expenses found for this user' });
+      }
+    } catch (error) {
+      console.error('Error fetching expenses:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+});
+
+// Define your add-expense route
+app.post('/:userId/add-expense', async (req, res) => {
+    const {  title, description, amount, date } = req.body;
+  const expenseAmount = parseFloat(amount);
+  const userId = req.params.userId;
+    try {
+      const newExpense = {
+        title,
+        description,
+        amount:expenseAmount,
+        date
+      };
+      console.log(newExpense);
+      // Find the user's expense document or create a new one if it doesn't exist
+      let expenseDoc = await ExpenseModel.findOne({ userId});
+  
+      if (expenseDoc) {
+        // Add new expense to the existing document
+        expenseDoc.expenses.push(newExpense);
+        expenseDoc.totalexpense += expenseAmount;
+      } else {
+        // Create a new expense document
+        expenseDoc = new ExpenseModel({
+          userId,
+          expenses: [newExpense],
+          totalexpense: expenseAmount
+        });
+      }
+  
+      await expenseDoc.save();
+      res.status(200).json({ message: 'Expense added successfully' });
+    } catch (error) {
+      console.error('Error adding expense:', error);
+      res.status(500).json({ message: 'Internal Server Error' });
+    }
+  });
+
+
+app.post('/register',(req,res)=>{
+    // const newuser=new UserModel(req.body);
+    // newuser.save()
+    const {name,mobile,email,password}=req.body;
+    
+    bcrypt.hash(password,10)
+    .then(hash=>{
+        UserModel.create({name,mobile,email,password:hash})
+        .then((user)=>
+        res.status(201).json(user))
+        .catch(error=>
+            res.status(500).json(error)
+        )
+    })
+    .catch(error=>{
+        console.log(error.message)}
+    )
+})
+app.put('/:userId/edit-expense/:expenseId', async (req, res) => {
+    try {
+      const { userId, expenseId } = req.params;
+      const { title, description, amount, date } = req.body;
+  
+      console.log('UserID:', userId, 'ExpenseID:', expenseId);
+      console.log('Request Body:', req.body);
+  
+      const expense = await ExpenseModel.findOneAndUpdate(
+        { userId, 'expenses._id': expenseId },
+        {
+          $set: {
+            'expenses.$.title': title,
+            'expenses.$.description': description,
+            'expenses.$.amount': amount,
+            'expenses.$.date': date,
+          },
+        },
+        { new: true }
+      );
+  
+      if (!expense) {
+        return res.status(404).json({ error: 'Expense not found' });
+      }
+  
+      res.json({ message: 'Expense edited successfully', expense });
+    } catch (err) {
+      console.error(err);
+      res.status(500).json({ error: 'Server error' });
+    }
+  });
+  
+app.listen(3001,()=>console.log("server is running in port http://localhost:3001"));
