@@ -20,6 +20,7 @@ function App() {
       <div>
        
         <BrowserRouter>
+        <ToastContainer />
         <Routes>
         {/* <Route path='/' element={<Home/>} /> */}
           <Route path='/register'element={<Register/>} />
@@ -28,7 +29,7 @@ function App() {
         </Routes>
         
         </BrowserRouter>
-        <ToastContainer  />
+        
         <Footer/>
       </div>
     </>

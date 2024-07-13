@@ -1,41 +1,14 @@
-
-import React, { useState,useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
 const ExpenseForm = ({ userId, addExpense }) => {
   const navigate = useNavigate();
 
-  const [refresh, setRefresh] = useState(false);
   // States for form inputs
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [amount, setAmount] = useState('');
-
-  // const handleSubmit = async (e) => {
-  //   e.preventDefault();
-  //   try {
-  //     const res = await axios.post(`http://localhost:3001/${userId}/add-expense`, {
-  //       title,
-  //       description,
-  //       amount
-  //     });
-
-  //     if (res.data.success) {
-  //       addExpense(res.data.expense); // Update parent component's state
-  //       setTitle('');
-  //       setDescription('');
-  //       setAmount('');
-  //     } else {
-  //       console.error('Failed to add expense');
-  //     }
-
-  //     // Navigate to dashboard page
-  //     navigate('/dashboard');
-  //   } catch (error) {
-  //     console.error('Error adding expense:', error);
-  //   }
-  // };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -45,32 +18,20 @@ const ExpenseForm = ({ userId, addExpense }) => {
         description,
         amount
       });
-  
-      if (res.data.success) {
-        addExpense(res.data.expense); // Update parent component's state
+
+      if (res.data.message === 'Expense added successfully') {
+        addExpense(res.data.expenses); // Update parent component's state with the updated expenses array
         setTitle('');
         setDescription('');
         setAmount('');
-        
-        // Trigger refresh
-        setRefresh(true);
       } else {
         console.error('Failed to add expense');
       }
-  
-      // Navigate to dashboard page
-      navigate('/dashboard');
     } catch (error) {
       console.error('Error adding expense:', error);
     }
   };
-  //  Use useEffect to handle the refresh effect
-  useEffect(() => {
-    if (refresh) {
-      window.location.reload();
-    }
-  }, [refresh]);
-  
+
   return (
     <div className="bg-light p-1 p-md-2 p-xl-3">
       <div className="p-2 p-md-2 p-xl-3">
