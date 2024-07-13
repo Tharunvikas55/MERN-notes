@@ -154,43 +154,44 @@ app.get('/:userId/get-expenses', async (req, res) => {
   });
 
 // Define your add-expense route
+
+// Add a new expense for a specific user
 app.post('/:userId/add-expense', async (req, res) => {
-  const { title, description, amount } = req.body; // Remove `date` from here
+    const { title, description, amount } = req.body;
+    const expenseAmount = parseFloat(amount);
+    const userId = req.params.userId;
 
-  const expenseAmount = parseFloat(amount);
-  const userId = req.params.userId;
-
-  if (!mongoose.Types.ObjectId.isValid(userId)) {
-    return res.status(400).json({ message: 'Invalid user ID' });
-  }
-
-  try {
-    const newExpense = {
-      title,
-      description,
-      amount: expenseAmount,
-      // Date will default to current date and time (Date.now) as per Mongoose schema
-    };
-
-    let expenseDoc = await ExpenseModel.findOne({ userId });
-
-    if (expenseDoc) {
-      expenseDoc.expenses.push(newExpense);
-      expenseDoc.totalExpense += expenseAmount;
-    } else {
-      expenseDoc = new ExpenseModel({
-        userId,
-        expenses: [newExpense],
-        totalExpense: expenseAmount
-      });
+    if (!mongoose.Types.ObjectId.isValid(userId)) {
+        return res.status(400).json({ message: 'Invalid user ID' });
     }
 
-    await expenseDoc.save();
-    res.status(200).json({ message: 'Expense added successfully', expense: newExpense });
-  } catch (error) {
-    console.error('Error adding expense:', error);
-    res.status(500).json({ message: 'Internal Server Error' });
-  }
+    try {
+        const newExpense = {
+            title,
+            description,
+            amount: expenseAmount,
+            date: new Date()
+        };
+
+        let expenseDoc = await ExpenseModel.findOne({ userId });
+
+        if (expenseDoc) {
+            expenseDoc.expenses.push(newExpense);
+            expenseDoc.totalExpense += expenseAmount;
+        } else {
+            expenseDoc = new ExpenseModel({
+                userId,
+                expenses: [newExpense],
+                totalExpense: expenseAmount
+            });
+        }
+
+        await expenseDoc.save();
+        res.status(200).json({ message: 'Expense added successfully', expenses: expenseDoc.expenses });
+    } catch (error) {
+        console.error('Error adding expense:', error);
+        res.status(500).json({ message: 'Internal Server Error' });
+    }
 });
 
 app.put('/:userId/edit-expense/:expenseId', async (req, res) => {
