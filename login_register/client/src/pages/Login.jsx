@@ -9,6 +9,7 @@ const Login = () => {
     const [password,setPassword]=useState()
     const [errors, setErrors] = useState({});
     const [serverError, setServerError] = useState('');
+    const [message,setMessage]= useState("");
     const navigate=useNavigate()
 
     axios.defaults.withCredentials=true;
@@ -26,42 +27,30 @@ const Login = () => {
       return errors;
     };
 
-    // const handleSubmit=(e)=>{
-    //     e.preventDefault();
-    //     axios.post('http://localhost:3001/login',{email,password})
-    //     .then(res=>{
-    //         console.log(res)
-    //         if(res.data.Login)
-    //             navigate('/dashboard')
-    //         else
-    //         {
-    //         navigate('/login')
-    //         }
-    //     })
-    //     .catch(err=>{console.log(err);}
-    //   )
-    // }
 
     const handleSubmit = (e) => {
+      setMessage("Loading...")
       e.preventDefault();
       const errors = validate();
-      if (Object.keys(errors).length === 0) {
-        axios.post('http://localhost:3001/login', { email, password })
-          .then(res => {
-            console.log(res);
-            if (res.data.Login) {
-              navigate('/home');
-            } else {
-              setServerError(res.data.message);
-              //navigate('/login');
-            }
-          })
-          .catch(err => {
-            console.log(err);
-          });
-      } else {
-        setErrors(errors);
-      }
+      
+      setTimeout(()=>{
+        if (Object.keys(errors).length === 0) {
+          axios.post('http://localhost:3001/login', { email, password })
+            .then(res => {
+              console.log(res);
+              if (res.data.Login) {
+                navigate('/home');
+              } else {
+                setServerError(res.data.message);
+              }
+            })
+            .catch(err => {
+              console.log(err);
+            });
+        } else {
+          setErrors(errors);
+        }
+      },3000)
     };
 
   return (
@@ -109,6 +98,7 @@ const Login = () => {
                 </div>
               </div>
             </form>
+            {<div className='text-center'><p>{message}</p></div>}
             <div className="row">
               <div className="col-12">
                 <hr className="mt-5 mb-4 border-secondary-subtle" />
