@@ -94,6 +94,7 @@ const ExpenseForm = ({ userId, addExpense }) => {
             </div>
           </div>
         </form>
+        <div></div>
       </div>
     </div>
   );
