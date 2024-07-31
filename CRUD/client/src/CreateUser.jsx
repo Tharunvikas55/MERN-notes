@@ -35,6 +35,7 @@ const CreateUser = () => {
                     <label htmlFor="">Age</label>
                     <input  type="text" className='form-control' name="" id="" placeholder='Enter your age' onChange={(e)=>setAge(e.target.value)}/>
                 </div>
+{/*button */}
                 <button type='submit' className='btn btn-success'>Submit</button>
             </form>
         </div>
