@@ -9,7 +9,7 @@ dotenv.config();
 // app.use(cors({
 //   origin: ['https://mernclienttharun.vercel.app', 'https://mernbackendtharun.vercel.app']
 // }));
-app.use(cors())
+// app.use(cors())
 // app.use(cors({
 //   origin: 'https://mernclienttharun.vercel.app'  
 // }));
