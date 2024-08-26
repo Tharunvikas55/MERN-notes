@@ -10,7 +10,7 @@ const UpdateUser = () => {
 
     
   useEffect(()=>{
-    axios.get("http://localhost:3001/getUser/"+id)
+    axios.get("https://mern-notes-nojq.onrender.com/getUser/"+id)
     .then(result=>{console.log(result.data)
     setName(result.data.name)
     setEmail(result.data.email)
@@ -21,7 +21,7 @@ const UpdateUser = () => {
 
   const update=(e)=>{
     e.preventDefault();
-    axios.put("http://localhost:3001/update/"+id,{name,email,age})
+    axios.put("https://mern-notes-nojq.onrender.com/update/"+id,{name,email,age})
         .then(result=>{
             console.log(result),
             navigate('/')
