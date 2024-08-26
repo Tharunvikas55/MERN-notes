@@ -9,15 +9,15 @@ dotenv.config();
 // app.use(cors({
 //   origin: ['https://mernclienttharun.vercel.app', 'https://mernbackendtharun.vercel.app']
 // }));
-app.use(cors())
+// app.use(cors())
 // app.use(cors({
 //   origin: 'https://mernclienttharun.vercel.app'  
 // }));
-// app.use(cors({
-//   origin: 'https://mernclienttharun.vercel.app',
-//   methods: ['GET', 'POST', 'PUT', 'DELETE'],
-//   allowedHeaders: ['Content-Type', 'Authorization']
-// }));
+app.use(cors({
+  origin: 'https://mern-notes-1.onrender.com',
+  methods: ['GET', 'POST', 'PUT', 'DELETE'],
+  allowedHeaders: ['Content-Type', 'Authorization']
+}));
 app.use(express.json())  //this is to when we pass data from frontend to backend it will parse to json format
 
 mongoose.connect(process.env.MONGO_URI, {
