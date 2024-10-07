@@ -6,6 +6,7 @@ import Home from './components/Home'
 import PostTrad from './components/PostTrad'
 import {BrowserRouter,Routes,Route,Link} from 'react-router-dom'
 import PostQuery from './components/PostQuery'
+import PostQueryDetail from './components/PostQueryDetail'
 
 function App() {
  
@@ -24,6 +25,7 @@ function App() {
       <Route exact path='/' element={ <Home/> }/>
       <Route exact path='/posts' element={ <PostTrad/> }/>
       <Route exact path='/rq' element={ <PostQuery/> }/>
+      <Route exact path='/rq/:postId' element={ <PostQueryDetail/> } />
     </Routes>
    </div>
    </BrowserRouter>
