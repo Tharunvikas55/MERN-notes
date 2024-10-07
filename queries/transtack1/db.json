@@ -1,0 +1,24 @@
+{
+    "posts":[
+        {
+            "id":"1",
+            "title":"Kongu Engineering college interview",
+            "body":"AI"
+        },
+        {
+            "id":"2",
+            "title":"Mark",
+            "body":"facebook"
+        },
+        {
+            "id":"3",
+            "title":"Tharun",
+            "body":"insta"
+        },
+        {
+            "id":"4",
+            "title":"Vikas",
+            "body":"React Tanstack Query"
+        }
+    ]
+}
