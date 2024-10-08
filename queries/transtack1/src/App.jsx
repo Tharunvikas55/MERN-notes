@@ -9,6 +9,7 @@ import PostQuery from './components/PostQuery'
 import PostQueryDetail from './components/PostQueryDetail'
 import PaginatedQueries from './components/PaginatedQueries'
 import 'bootstrap/dist/css/bootstrap.min.css'; // Import Bootstrap CSS
+import InfinateQueries from './components/InfinateQueries'
 
 function App() {
   return (
@@ -55,6 +56,9 @@ function App() {
                     Paginated Fruits
                   </Link>
                 </li>
+                <li className="nav-item">
+                  <Link className='nav-link' to='/infinate-scroll' >Scroll</Link>
+                </li>
               </ul>
             </div>
           </div>
@@ -68,6 +72,7 @@ function App() {
             <Route exact path="/rq" element={<PostQuery />} />
             <Route exact path="/rq/:postId" element={<PostQueryDetail />} />
             <Route exact path="/paginated-fruits" element={<PaginatedQueries />} />
+            <Route exact path="/infinate-scroll" element={< InfinateQueries/> } />
           </Routes>
         </div>
       </div>

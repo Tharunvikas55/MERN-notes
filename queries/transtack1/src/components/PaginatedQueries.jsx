@@ -52,7 +52,7 @@ const PaginatedQueries = () => {
         <button 
           onClick={() => setPage(prev => prev + 1)}
           className="btn btn-primary" 
-          disabled={page=== 5?true:false} // Disable if fewer than 4 items fetched
+          disabled={page=== 15?true:false} // Disable if fewer than 4 items fetched
         >
           Next Page
         </button>
