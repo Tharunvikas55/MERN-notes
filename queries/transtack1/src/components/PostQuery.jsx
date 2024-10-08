@@ -2,6 +2,7 @@ import React from 'react'
 import {useQuery} from '@tanstack/react-query'
 import axios from 'axios'
 import { Link } from 'react-router-dom'
+import 'bootstrap/dist/css/bootstrap.min.css';
 
 const PostQuery = () => {
     const {data,isError,isLoading,error,isFetching,refetch}=useQuery({queryKey:['posts'],
@@ -27,14 +28,28 @@ const PostQuery = () => {
         //console.log(data);
 
     return (
-            <div>
-                {/* <button onClick={refetch}>fetch by refetch method </button> */}
-                {data?.data.map(post=>(
-                <Link to={`/rq/${post.id}`} ><div key={post.id}>
-                <h1>{post.title}</h1>
-                <h2>{post.body}</h2>
-            </div></Link>
-            ))}</div>
+           <div>
+             {/* <button onClick={refetch}>fetch by refetch method </button> */}
+                <div className="container mt-4">
+      <div className="row g-4">
+        {/* Map through posts */}
+        {data?.data.map((post) => (
+          <div key={post.id} className="col-md-6">
+            <Link to={`/rq/${post.id}`} className="text-decoration-none">
+              {/* Bootstrap Card for Post */}
+              <div className="card h-100 shadow-sm">
+                <div className="card-body">
+                  <h5 className="card-title text-primary">{post.title}</h5>
+                  <p className="card-text text-muted">{post.body.substring(0, 100)}...</p>
+                </div>
+              </div>
+            </Link>
+          </div>
+        ))}
+      </div>
+           </div>
+           </div>
+    
           )
 }
 
